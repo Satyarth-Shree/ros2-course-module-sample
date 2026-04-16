@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Part 2: Creating Your First Node — ROS Simplified × KarthiKesh Robotics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:     #e8000f;
+      --black:   #080808;
+      --black-2: #101010;
+      --black-3: #171717;
+      --border:  rgba(255,255,255,0.07);
+      --text:    #e6e6e6;
+      --muted:   #777;
+      --code-bg: #0c0c0c;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300; line-height: 1.8;
+    }
+
+    .top-beam { height: 2px; background: linear-gradient(90deg, transparent, var(--red) 25%, var(--red) 75%, transparent); }
+
+    /* NAV */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 3rem;
+      background: rgba(8,8,8,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .nav-brand img { height: 26px; width: auto; object-fit: contain; }
+    .nav-dot { color: rgba(255,255,255,0.15); font-size: 0.9rem; }
+    .nav-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+    .nav-back { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .nav-back:hover { color: var(--text); }
+
+    /* LAYOUT */
+    .page { max-width: 740px; margin: 0 auto; padding: 4rem 2rem 8rem; }
+
+    /* HEADER */
+    .art-header { margin-bottom: 3rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
+    .art-meta { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.3rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-block; padding: 0.2rem 0.65rem; border-radius: 4px;
+      font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .chip-red { background: rgba(232,0,15,0.1); color: var(--red); border: 1px solid rgba(232,0,15,0.28); }
+    .chip-dim { background: var(--black-2); color: var(--muted); border: 1px solid var(--border); }
+
+    .art-title { font-family: 'Syne', sans-serif; font-size: clamp(1.9rem, 4vw, 2.9rem); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; margin-bottom: 0.9rem; }
+    .art-title span { color: var(--red); }
+    .art-sub { font-size: 1rem; color: var(--muted); font-weight: 300; line-height: 1.75; }
+
+    .author-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 1.8rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .author-info { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; color: var(--muted); }
+    .author-info strong { color: var(--text); }
+    .partner-logos { display: flex; align-items: center; gap: 0.6rem; }
+    .partner-logos img { height: 20px; width: auto; object-fit: contain; opacity: 0.75; }
+    .partner-logos span { font-size: 0.7rem; color: var(--muted); }
+
+    /* TOC */
+    .toc {
+      background: var(--black-2); border: 1px solid var(--border);
+      border-left: 3px solid var(--red); border-radius: 8px;
+      padding: 1.5rem 1.7rem; margin: 0 0 3rem;
+    }
+    .toc-title { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 0.9rem; }
+    .toc ol { list-style: decimal; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .toc a { font-size: 0.88rem; color: var(--muted); text-decoration: none; transition: color 0.18s; }
+    .toc a:hover { color: var(--text); }
+
+    /* PREREQ CARD */
+    .prereq {
+      background: var(--black-2); border: 1px solid rgba(232,0,15,0.2);
+      border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 2rem;
+      display: flex; align-items: flex-start; gap: 0.8rem;
+    }
+    .prereq-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .prereq-text { font-size: 0.9rem; color: #aaa; line-height: 1.7; }
+    .prereq-text a { color: var(--red); text-decoration: none; border-bottom: 1px solid rgba(232,0,15,0.28); }
+
+    /* CONTENT */
+    .content h2 {
+      font-family: 'Syne', sans-serif; font-size: 1.55rem; font-weight: 700;
+      letter-spacing: -0.02em; margin: 3.2rem 0 1rem; padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .content h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.7rem; }
+    .content p { font-size: 0.97rem; color: #bfbfbf; margin-bottom: 1.1rem; line-height: 1.85; }
+    .content strong { color: var(--text); font-weight: 500; }
+    .content a { color: var(--red); text-decoration: none; border-bottom: 1px solid rgba(232,0,15,0.28); transition: border-color 0.18s; }
+    .content a:hover { border-color: var(--red); }
+    .content ul { padding-left: 1.3rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .content li { font-size: 0.95rem; color: #bfbfbf; line-height: 1.75; }
+
+    /* CALLOUT */
+    .note {
+      background: rgba(232,0,15,0.05); border: 1px solid rgba(232,0,15,0.18);
+      border-left: 3px solid var(--red); border-radius: 6px;
+      padding: 0.9rem 1.3rem; margin: 1.3rem 0;
+      font-size: 0.9rem; color: #b0b0b0; font-style: italic;
+    }
+    .note.plain { background: var(--black-2); border-color: var(--border); border-left-color: rgba(255,255,255,0.15); }
+    .note.warning { background: rgba(232,0,15,0.07); border-color: rgba(232,0,15,0.3); }
+
+    /* MISTAKE CARD */
+    .mistake {
+      background: var(--black-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.5rem 1.6rem; margin: 1.5rem 0;
+    }
+    .mistake-header { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.8rem; }
+    .mistake-num {
+      background: rgba(232,0,15,0.12); border: 1px solid rgba(232,0,15,0.28);
+      border-radius: 4px; padding: 0.15rem 0.55rem;
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em;
+      color: var(--red); text-transform: uppercase;
+    }
+    .mistake-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+    .mistake p { font-size: 0.92rem; color: #aaa; line-height: 1.8; margin-bottom: 0.9rem; }
+    .mistake p:last-child { margin-bottom: 0; }
+
+    /* CODE */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.1rem 1.3rem 1.1rem 2.5rem;
+      margin: 1rem 0 1.6rem; overflow-x: auto; position: relative;
+    }
+    pre::before { content: '$'; position: absolute; left: 1rem; top: 1.15rem; color: var(--red); font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+    pre.no-prompt { padding-left: 1.3rem; }
+    pre.no-prompt::before { display: none; }
+    pre.py::before { content: 'py'; font-size: 0.62rem; top: 1.2rem; }
+    code { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: #dcdcdc; line-height: 1.75; }
+    p code, li code {
+      background: var(--black-3); border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.1em 0.42em; font-size: 0.79em; color: #f09090;
+    }
+
+    /* IMAGES — Part 2 has no tutorial images in the GitHub repo (they were inline Medium screenshots), so we show a placeholder notice */
+    .img-note {
+      background: var(--black-2); border: 1px dashed var(--border);
+      border-radius: 6px; padding: 0.8rem 1.2rem; margin: 1rem 0;
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em;
+      color: var(--muted); text-transform: uppercase; text-align: center;
+    }
+
+    /* RULE */
+    .rule { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 2.8rem 0; }
+
+    /* FILE STRUCTURE */
+    .tree {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.2rem 1.4rem; margin: 1.2rem 0 1.6rem;
+      font-family: 'DM Mono', monospace; font-size: 0.8rem; color: #bbb; line-height: 1.9;
+    }
+    .tree .dir { color: #6fa3e0; }
+    .tree .file { color: #dcdcdc; }
+    .tree .red { color: var(--red); }
+
+    /* PREV/NEXT NAV */
+    .page-nav { display: flex; gap: 1rem; margin-top: 4rem; flex-wrap: wrap; }
+    .nav-card {
+      flex: 1; min-width: 200px;
+      background: var(--black-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.6rem;
+      text-decoration: none; color: inherit;
+      transition: border-color 0.22s, background 0.22s;
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .nav-card:hover { border-color: rgba(232,0,15,0.38); background: var(--black-3); }
+    .nav-card-lbl { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
+    .nav-card-title { font-family: 'Syne', sans-serif; font-size: 0.97rem; font-weight: 700; }
+    .nav-card.prev .nav-card-lbl::before { content: '← '; }
+    .nav-card.next .nav-card-lbl::after { content: ' →'; }
+    .nav-card.next { text-align: right; }
+
+    /* FOOTER */
+    .art-footer { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+    .art-footer-brand { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+    .art-footer-links { display: flex; gap: 1.2rem; list-style: none; }
+    .art-footer-links a { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-decoration: none; text-transform: uppercase; transition: color 0.18s; }
+    .art-footer-links a:hover { color: var(--text); }
+
+    @media (max-width: 640px) {
+      nav { padding: 0.9rem 1.2rem; }
+      .nav-label { display: none; }
+      .page { padding: 2.5rem 1.2rem 5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-beam"></div>
+
+<nav>
+  <div class="nav-brand">
+    <img src="Images/ROS_Simplified_Logo.png" alt="ROS Simplified" />
+    <span class="nav-dot">·</span>
+    <img src="Images/Karthikesh_Robotics_Logo.png" alt="KarthiKesh Robotics" />
+    <span class="nav-dot">·</span>
+    <span class="nav-label">Module 1 — Part 2</span>
+  </div>
+  <a href="index.html" class="nav-back">← Module Home</a>
+</nav>
+
+<div class="page">
+
+  <!-- ARTICLE HEADER -->
+  <header class="art-header">
+    <div class="art-meta">
+      <span class="chip chip-red">Module 1</span>
+      <span class="chip chip-dim">Part 2 of 2</span>
+    </div>
+    <h1 class="art-title">
+      ROS 2 Tutorial for Beginners:<br/>
+      <span>Creating Your First Node</span>
+    </h1>
+    <p class="art-sub">Understand what ROS 2 nodes are, write a Python node using rclpy, create an executable via setup.py, run it — and fix the most common mistakes beginners make.</p>
+    <div class="author-row">
+      <div class="author-info">By <strong>Satyarth Shree</strong> &nbsp;·&nbsp; ROS Simplified × KarthiKesh Robotics &nbsp;·&nbsp; Module 1, Part 2</div>
+      <div class="partner-logos">
+        <img src="Images/ROS_Simplified_Logo.png" alt="ROS Simplified" />
+        <span>×</span>
+        <img src="Images/Karthikesh_Robotics_Logo.png" alt="KarthiKesh Robotics" />
+      </div>
+    </div>
+  </header>
+
+  <!-- PREREQ -->
+  <div class="prereq">
+    <span class="prereq-icon">⚠️</span>
+    <p class="prereq-text">
+      <strong>Prerequisite:</strong> This article assumes you have already created a ROS 2 workspace and a Python package. If not, complete <a href="part1.html">Part 1</a> first — creating a node without knowing how to set up a workspace will cause confusion.
+    </p>
+  </div>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <p class="toc-title">Table of Contents</p>
+    <ol>
+      <li><a href="#what-is-node">What are Nodes?</a></li>
+      <li><a href="#setup">Creating a Workspace and Package</a></li>
+      <li><a href="#create-node">Creating the Node File</a></li>
+      <li><a href="#code">Writing the Node Code</a></li>
+      <li><a href="#executable">Creating an Executable</a></li>
+      <li><a href="#run">Running the Node</a></li>
+      <li><a href="#mistakes">Common Mistakes To Avoid</a></li>
+    </ol>
+  </nav>
+
+  <!-- CONTENT -->
+  <article class="content">
+
+    <section id="what-is-node">
+      <h2>What are Nodes?</h2>
+      <p>Instead of memorising a definition, we will show you exactly what a node is by creating one. Before creating a node it is important to know how to create a workspace and a package — a node cannot exist without them.</p>
+
+      <p>In ROS 2, a <strong>node</strong> is a single executable program that performs a specific task. Think of a robot's software system as a city — nodes are the individual buildings, each with a purpose. One node reads the camera, another processes images, another controls the motors. Nodes communicate with each other through ROS 2's communication system.</p>
+
+      <p>In this tutorial, we will create a Python node that displays a message on screen. Simple — but this exact process is the foundation for every node you will ever build.</p>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="setup">
+      <h2>Creating a Workspace and Package</h2>
+      <p>The two most popular programming languages used with ROS 2 are C++ and Python. In this tutorial we will create a <strong>Python node</strong> — Python is more beginner-friendly and an ideal starting point.</p>
+
+      <p>Before creating the node, create a workspace named <code>ws</code> and a Python package named <code>py_pkg</code> inside it.</p>
+
+      <p>First, source ROS 2:</p>
+      <pre><code>source /opt/ros/jazzy/setup.bash</code></pre>
+
+      <div class="note plain">Replace <code>jazzy</code> with your distribution name — e.g. <code>humble</code> if you are using ROS 2 Humble.</div>
+
+      <p>Create the workspace folder:</p>
+      <pre><code>mkdir ws</code></pre>
+
+      <p>Move inside the workspace and create the source folder:</p>
+      <pre><code>cd ws</code></pre>
+      <pre><code>mkdir src</code></pre>
+
+      <p>Build the empty workspace:</p>
+      <pre><code>colcon build</code></pre>
+
+      <p>Now move inside the <code>src</code> folder and create the Python package:</p>
+      <pre><code>cd src</code></pre>
+      <pre><code>ros2 pkg create py_pkg --build-type ament_python --dependencies rclpy</code></pre>
+
+      <p>Move back to the workspace root and build again:</p>
+      <pre><code>cd ..</code></pre>
+      <pre><code>colcon build</code></pre>
+
+      <p>You should see:</p>
+      <pre class="no-prompt"><code>Summary: 1 package finished [1.08s]</code></pre>
+
+      <div class="note warning">
+        <strong>Important:</strong> <code>colcon build</code> must always be executed from the workspace folder, never from inside <code>src</code> or any package folder. The package creation command must be executed from inside the <code>src</code> folder.
+      </div>
+
+      <p>Your workspace now has the following structure:</p>
+
+      <div class="tree">
+        <span class="dir">ws/</span><br/>
+        &nbsp;&nbsp;<span class="dir">src/</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">py_pkg/</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">py_pkg/</span> &nbsp;<span style="color:var(--muted)">← this is where your node files go</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">setup.py</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">package.xml</span><br/>
+        &nbsp;&nbsp;<span class="dir">build/</span><br/>
+        &nbsp;&nbsp;<span class="dir">install/</span><br/>
+        &nbsp;&nbsp;<span class="dir">log/</span>
+      </div>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="create-node">
+      <h2>Creating the Node File</h2>
+      <p>Inside the <code>src</code> folder we have a folder named <code>py_pkg</code>. Inside this package there is another folder with the same name. Navigate into it:</p>
+
+      <pre><code>cd py_pkg/py_pkg/</code></pre>
+
+      <p>Now create a Python file for the node:</p>
+      <pre><code>touch my_first_node.py</code></pre>
+
+      <p>Make this file executable so ROS 2 can run it later:</p>
+      <pre><code>chmod +x my_first_node.py</code></pre>
+
+      <p>Run <code>ls</code> to verify. The file <code>my_first_node.py</code> should now appear in <strong>green</strong>, indicating it is an executable.</p>
+
+      <div class="note plain">
+        If the file name shows in <strong>blue</strong> instead of green, the <code>chmod</code> command either had a syntax error or was run from the wrong directory. Run:<br/><br/>
+        <code>cd ~/ws/src/py_pkg/py_pkg/</code><br/><br/>
+        Then run <code>chmod +x my_first_node.py</code> again.
+      </div>
+
+      <p>Now open VS Code from the workspace root to start coding:</p>
+      <pre><code>cd ~/ws</code></pre>
+      <pre><code>code .</code></pre>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="code">
+      <h2>Writing the Node Code</h2>
+      <p>Open <code>my_first_node.py</code> in VS Code and write the following code step by step. Every line is explained below.</p>
+
+      <h3>Step 1 — The Shebang Line</h3>
+      <p>At the very top of the file, add:</p>
+      <pre class="py"><code>#!/usr/bin/env python3</code></pre>
+      <p>This line is called the <strong>shebang</strong>. It tells the operating system: "Use the Python 3 interpreter to execute this file." It must always be the first line.</p>
+
+      <h3>Step 2 — Import rclpy</h3>
+      <pre class="py"><code>import rclpy</code></pre>
+      <p><code>rclpy</code> is the Python client library for ROS 2. Think of it as a folder containing Python files, and one of those files — <code>node.py</code> — contains the <code>Node</code> class we need to create a node.</p>
+
+      <h3>Step 3 — Import the Node Class</h3>
+      <pre class="py"><code>from rclpy.node import Node</code></pre>
+      <p>This imports the <code>Node</code> class from the <code>node.py</code> file inside the <code>rclpy</code> library. We need this class to create and manage a ROS 2 node.</p>
+
+      <h3>Step 4 — Create the main() Function</h3>
+      <pre class="py"><code>def main():
+    pass</code></pre>
+      <p>All the main logic of our node goes inside this <code>main()</code> function. The reason will become clear when we create the executable — ROS 2 needs to know which function to call when the node runs.</p>
+
+      <h3>Step 5 — Initialize ROS 2</h3>
+      <p>Inside <code>main()</code>, write:</p>
+      <pre class="py"><code>def main():
+    rclpy.init()</code></pre>
+      <p>Think of ROS 2 as a car parked in a garage. Writing <code>import rclpy</code> opened the garage door — you can see the car. Writing <code>rclpy.init()</code> starts the engine. Only after this line can you use ROS 2 functionalities.</p>
+
+      <h3>Step 6 — Create the Node</h3>
+      <pre class="py"><code>def main():
+    rclpy.init()
+    node = Node("python_node")</code></pre>
+      <p>This creates a node named <code>python_node</code>. The string passed to <code>Node()</code> is the name of your node. You can use any variable name on the left — <code>node</code> is just a convention.</p>
+
+      <h3>Step 7 — Log a Message</h3>
+      <pre class="py"><code>def main():
+    rclpy.init()
+    node = Node("python_node")
+    node.get_logger().info("I am learning ROS 2.")</code></pre>
+      <p>This prints a message through the ROS 2 logging system. Replace <code>"I am learning ROS 2."</code> with whatever message you want to display.</p>
+
+      <h3>Step 8 — Shut Down ROS 2</h3>
+      <pre class="py"><code>def main():
+    rclpy.init()
+    node = Node("python_node")
+    node.get_logger().info("I am learning ROS 2.")
+    rclpy.shutdown()</code></pre>
+      <p>We started the ROS 2 engine with <code>rclpy.init()</code>. Now we turn it off with <code>rclpy.shutdown()</code>. Always close what you open.</p>
+
+      <h3>Complete Node Code</h3>
+      <p>Your complete <code>my_first_node.py</code> should look like this:</p>
+      <pre class="py"><code>#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+
+def main():
+    rclpy.init()
+    node = Node("python_node")
+    node.get_logger().info("I am learning ROS 2.")
+    rclpy.shutdown()
+</code></pre>
+      <p>Press <strong>Ctrl + S</strong> to save the file.</p>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="executable">
+      <h2>Creating an Executable</h2>
+      <p>In ROS 2, finishing the code is not enough — you must register an executable so ROS 2 knows how to run your node.</p>
+
+      <p>In VS Code's left sidebar, locate <strong>setup.py</strong> inside your package (<code>ws/src/py_pkg/setup.py</code>). Open it.</p>
+
+      <p>Find the <code>console_scripts</code> section and add your executable entry inside the square brackets:</p>
+
+      <pre class="py"><code>entry_points={
+    'console_scripts': [
+        'my_node = py_pkg.my_first_node:main',
+    ],
+},</code></pre>
+
+      <p>Breaking this down:</p>
+      <ul>
+        <li><code>my_node</code> — the name of the executable (what you will type to run the node)</li>
+        <li><code>py_pkg</code> — the name of the package</li>
+        <li><code>my_first_node</code> — the name of the Python file (without <code>.py</code>)</li>
+        <li><code>main</code> — the function to call when the executable runs</li>
+      </ul>
+
+      <p>This is why we wrote our code inside <code>main()</code> — the executable entry point must reference a function name.</p>
+
+      <div class="note warning">
+        <strong>Save the file</strong> after making this change (Ctrl + S). A common mistake is running <code>colcon build</code> before saving, which means the executable registration is never included in the build.
+      </div>
+
+      <p>Now go to your terminal, navigate to the workspace root, and build:</p>
+      <pre><code>cd ~/ws</code></pre>
+      <pre><code>colcon build</code></pre>
+
+      <p>After building, source the install folder:</p>
+      <pre><code>source ~/ws/install/setup.bash</code></pre>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="run">
+      <h2>Running the Node</h2>
+      <p>Run the node using:</p>
+      <pre><code>ros2 run py_pkg my_node</code></pre>
+
+      <p>The format is: <code>ros2 run &lt;package_name&gt; &lt;executable_name&gt;</code>. Note that you type the <strong>executable name</strong> (<code>my_node</code>), not the node name (<code>python_node</code>).</p>
+
+      <p>If everything is set up correctly, you will see:</p>
+      <pre class="no-prompt"><code>[INFO] [python_node]: I am learning ROS 2.</code></pre>
+
+      <p>Your first ROS 2 node is working.</p>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="mistakes">
+      <h2>Common Mistakes To Avoid</h2>
+      <p>If your node did not run and you saw an error instead, you likely made one of the following mistakes. Go through each one carefully.</p>
+
+      <div class="mistake">
+        <div class="mistake-header">
+          <span class="mistake-num">Mistake 1</span>
+          <span class="mistake-title">Running colcon build from the Wrong Directory</span>
+        </div>
+        <p>If you ran <code>colcon build</code> from inside <code>src</code> or a package folder, the build went to the wrong place. Check for <code>build</code>, <code>install</code>, and <code>log</code> folders in that wrong directory. If they exist, delete them:</p>
+        <pre><code>rm -rf build install log</code></pre>
+        <p>Then go to your workspace and build correctly:</p>
+        <pre><code>cd ~/ws</code></pre>
+        <pre><code>colcon build</code></pre>
+      </div>
+
+      <div class="mistake">
+        <div class="mistake-header">
+          <span class="mistake-num">Mistake 2</span>
+          <span class="mistake-title">Not Sourcing the Install Folder</span>
+        </div>
+        <p>If you get an error like <code>Package 'py_pkg' not found</code> when trying to run your node, you have not sourced the install folder. Run these two commands:</p>
+        <pre><code>source /opt/ros/jazzy/setup.bash</code></pre>
+        <pre><code>source ~/ws/install/setup.bash</code></pre>
+        <p>Replace <code>jazzy</code> with your ROS 2 distribution. Now try running the node again.</p>
+      </div>
+
+      <div class="mistake">
+        <div class="mistake-header">
+          <span class="mistake-num">Mistake 3</span>
+          <span class="mistake-title">Forgetting to Save Files</span>
+        </div>
+        <p>We made changes to two files: <code>my_first_node.py</code> and <code>setup.py</code>. If either was not saved before running <code>colcon build</code>, the unsaved changes were not included in the build. Always press <strong>Ctrl + S</strong> to save both files, then rebuild:</p>
+        <pre><code>colcon build</code></pre>
+        <pre><code>source ~/ws/install/setup.bash</code></pre>
+        <pre><code>ros2 run py_pkg my_node</code></pre>
+      </div>
+
+      <div class="mistake">
+        <div class="mistake-header">
+          <span class="mistake-num">Mistake 4</span>
+          <span class="mistake-title">Syntax Errors While Typing Commands</span>
+        </div>
+        <p>ROS 2 commands are case-sensitive and space-sensitive. A single extra space or wrong letter will cause an error. Compare your commands letter-by-letter against the ones in this tutorial if something is not working.</p>
+        <p>You can also compare your file structure against the reference repository: <a href="https://github.com/Satyarth-Shree/ros2-beginner-part-2-python-node" target="_blank">github.com/Satyarth-Shree/ros2-beginner-part-2-python-node</a></p>
+      </div>
+    </section>
+
+    <div class="rule"></div>
+
+    <section>
+      <h2>Conclusion</h2>
+      <p>You have just written, built, and run your first ROS 2 node. This is the most fundamental skill in ROS 2 development — every robot program you write from here will follow this same pattern: create a file, write a node class, register an executable, build, and run.</p>
+
+      <p>Practice this by creating multiple workspaces and nodes from scratch until the process feels natural. In the next part of this series, we will go deeper — exploring what nodes truly are, how to run multiple nodes simultaneously, and how to introspect them using ROS 2 command-line tools.</p>
+    </section>
+
+  </article>
+
+  <!-- PREV/NEXT NAV -->
+  <div class="page-nav">
+    <a href="part1.html" class="nav-card prev">
+      <span class="nav-card-lbl">Previous</span>
+      <span class="nav-card-title">Part 1: Create Your First Workspace & Package</span>
+    </a>
+    <a href="index.html" class="nav-card next">
+      <span class="nav-card-lbl">Module Home</span>
+      <span class="nav-card-title">Back to Module Overview</span>
+    </a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="art-footer">
+    <span class="art-footer-brand">ROS Simplified × KarthiKesh Robotics · Module 1</span>
+    <ul class="art-footer-links">
+      <li><a href="index.html">Module Home</a></li>
+      <li><a href="https://rossimplified.substack.com" target="_blank">Publication</a></li>
+      <li><a href="mailto:contact@satyarthshree.com">Contact</a></li>
+    </ul>
+  </footer>
+
+</div>
+</body>
+</html>
