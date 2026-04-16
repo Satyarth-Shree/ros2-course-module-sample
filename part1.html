@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Part 1: Create Your First Workspace & Package — ROS Simplified × KarthiKesh Robotics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:     #e8000f;
+      --black:   #080808;
+      --black-2: #101010;
+      --black-3: #171717;
+      --border:  rgba(255,255,255,0.07);
+      --text:    #e6e6e6;
+      --muted:   #777;
+      --code-bg: #0c0c0c;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300; line-height: 1.8;
+    }
+
+    .top-beam { height: 2px; background: linear-gradient(90deg, transparent, var(--red) 25%, var(--red) 75%, transparent); }
+
+    /* NAV */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 3rem;
+      background: rgba(8,8,8,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .nav-brand img { height: 26px; width: auto; object-fit: contain; }
+    .nav-dot { color: rgba(255,255,255,0.15); font-size: 0.9rem; }
+    .nav-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+    .nav-back { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .nav-back:hover { color: var(--text); }
+
+    /* LAYOUT */
+    .page { max-width: 740px; margin: 0 auto; padding: 4rem 2rem 8rem; }
+
+    /* HEADER */
+    .art-header { margin-bottom: 3rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
+    .art-meta { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.3rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-block; padding: 0.2rem 0.65rem; border-radius: 4px;
+      font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .chip-red { background: rgba(232,0,15,0.1); color: var(--red); border: 1px solid rgba(232,0,15,0.28); }
+    .chip-dim { background: var(--black-2); color: var(--muted); border: 1px solid var(--border); }
+
+    .art-title { font-family: 'Syne', sans-serif; font-size: clamp(1.9rem, 4vw, 2.9rem); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; margin-bottom: 0.9rem; }
+    .art-title span { color: var(--red); }
+    .art-sub { font-size: 1rem; color: var(--muted); font-weight: 300; line-height: 1.75; }
+
+    .author-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 1.8rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .author-info { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; color: var(--muted); }
+    .author-info strong { color: var(--text); }
+    .partner-logos { display: flex; align-items: center; gap: 0.6rem; }
+    .partner-logos img { height: 20px; width: auto; object-fit: contain; opacity: 0.75; }
+    .partner-logos span { font-size: 0.7rem; color: var(--muted); }
+
+    /* TOC */
+    .toc {
+      background: var(--black-2); border: 1px solid var(--border);
+      border-left: 3px solid var(--red); border-radius: 8px;
+      padding: 1.5rem 1.7rem; margin: 0 0 3rem;
+    }
+    .toc-title { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 0.9rem; }
+    .toc ol { list-style: decimal; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .toc a { font-size: 0.88rem; color: var(--muted); text-decoration: none; transition: color 0.18s; }
+    .toc a:hover { color: var(--text); }
+
+    /* CONTENT */
+    .content h2 {
+      font-family: 'Syne', sans-serif; font-size: 1.55rem; font-weight: 700;
+      letter-spacing: -0.02em; margin: 3.2rem 0 1rem; padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .content h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.7rem; }
+    .content p { font-size: 0.97rem; color: #bfbfbf; margin-bottom: 1.1rem; line-height: 1.85; }
+    .content strong { color: var(--text); font-weight: 500; }
+    .content a { color: var(--red); text-decoration: none; border-bottom: 1px solid rgba(232,0,15,0.28); transition: border-color 0.18s; }
+    .content a:hover { border-color: var(--red); }
+
+    /* CALLOUT */
+    .note {
+      background: rgba(232,0,15,0.05); border: 1px solid rgba(232,0,15,0.18);
+      border-left: 3px solid var(--red); border-radius: 6px;
+      padding: 0.9rem 1.3rem; margin: 1.3rem 0;
+      font-size: 0.9rem; color: #b0b0b0; font-style: italic;
+    }
+    .note.plain { background: var(--black-2); border-color: var(--border); border-left-color: rgba(255,255,255,0.15); }
+
+    /* CODE */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.1rem 1.3rem 1.1rem 2.5rem;
+      margin: 1rem 0 1.6rem; overflow-x: auto; position: relative;
+    }
+    pre::before { content: '$'; position: absolute; left: 1rem; top: 1.15rem; color: var(--red); font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+    pre.no-prompt { padding-left: 1.3rem; }
+    pre.no-prompt::before { display: none; }
+    code { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: #dcdcdc; line-height: 1.7; }
+    p code, li code {
+      background: var(--black-3); border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.1em 0.42em; font-size: 0.79em; color: #f09090;
+    }
+
+    /* IMAGES */
+    .img-wrap { margin: 1.6rem 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--black-2); }
+    .img-wrap img { width: 100%; height: auto; display: block; }
+    .img-cap { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-align: center; padding: 0.55rem 1rem; border-top: 1px solid var(--border); text-transform: uppercase; }
+
+    /* DIVIDER */
+    .rule { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 2.8rem 0; }
+
+    /* NEXT CARD */
+    .next-card {
+      margin-top: 4rem; background: var(--black-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.8rem 2rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+      text-decoration: none; color: inherit; transition: border-color 0.22s, background 0.22s;
+    }
+    .next-card:hover { border-color: rgba(232,0,15,0.38); background: var(--black-3); }
+    .next-lbl { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.16em; color: var(--red); text-transform: uppercase; margin-bottom: 0.4rem; }
+    .next-title { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; }
+    .next-arrow { font-size: 1.4rem; color: var(--red); flex-shrink: 0; }
+
+    /* ARTICLE FOOTER */
+    .art-footer { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+    .art-footer-brand { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+    .art-footer-links { display: flex; gap: 1.2rem; list-style: none; }
+    .art-footer-links a { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-decoration: none; text-transform: uppercase; transition: color 0.18s; }
+    .art-footer-links a:hover { color: var(--text); }
+
+    @media (max-width: 640px) {
+      nav { padding: 0.9rem 1.2rem; }
+      .nav-label { display: none; }
+      .page { padding: 2.5rem 1.2rem 5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-beam"></div>
+
+<nav>
+  <div class="nav-brand">
+    <img src="Images/ROS_Simplified_Logo.png" alt="ROS Simplified" />
+    <span class="nav-dot">·</span>
+    <img src="Images/Karthikesh_Robotics_Logo.png" alt="KarthiKesh Robotics" />
+    <span class="nav-dot">·</span>
+    <span class="nav-label">Module 1 — Part 1</span>
+  </div>
+  <a href="index.html" class="nav-back">← Module Home</a>
+</nav>
+
+<div class="page">
+
+  <!-- ARTICLE HEADER -->
+  <header class="art-header">
+    <div class="art-meta">
+      <span class="chip chip-red">Module 1</span>
+      <span class="chip chip-dim">Part 1 of 2</span>
+    </div>
+    <h1 class="art-title">
+      ROS 2 Tutorial for Beginners:<br/>
+      <span>Create Your First Workspace and Package</span>
+    </h1>
+    <p class="art-sub">A step-by-step guide covering ROS 2 distributions, installation on Ubuntu 24.04, essential Linux terminal commands, workspace creation, and your first Python package.</p>
+    <div class="author-row">
+      <div class="author-info">By <strong>Satyarth Shree</strong> &nbsp;·&nbsp; ROS Simplified × KarthiKesh Robotics &nbsp;·&nbsp; Module 1, Part 1</div>
+      <div class="partner-logos">
+        <img src="Images/ROS_Simplified_Logo.png" alt="ROS Simplified" />
+        <span>×</span>
+        <img src="Images/Karthikesh_Robotics_Logo.png" alt="KarthiKesh Robotics" />
+      </div>
+    </div>
+  </header>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <p class="toc-title">Table of Contents</p>
+    <ol>
+      <li><a href="#intro">About This Article</a></li>
+      <li><a href="#distributions">ROS 2 Distributions</a></li>
+      <li><a href="#installing">Installing ROS 2 Jazzy</a></li>
+      <li><a href="#terminal">Basic Linux Terminal Commands</a></li>
+      <li><a href="#workspace">Creating a Workspace</a></li>
+      <li><a href="#package">Creating a Package</a></li>
+    </ol>
+  </nav>
+
+  <!-- CONTENT -->
+  <article class="content">
+
+    <section id="intro">
+      <p>This tutorial has been made for beginners who are just starting with ROS 2 and are entirely unaware of its features and functionalities. Let's dive in and explore what ROS 2 is and how it works.</p>
+      <div class="note">
+        💡 <strong>Tip:</strong> Use split-screen — keep this guide on one side and your terminal on the other. If you have a phone, open this guide there and follow along on your laptop or PC.
+      </div>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="distributions">
+      <h2>ROS 2 Distributions</h2>
+      <p>First, open this link: <a href="https://docs.ros.org/en/foxy/Releases.html" target="_blank">https://docs.ros.org/en/foxy/Releases.html</a></p>
+      <p>After scrolling down you will find a list of distributions:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_1.png" alt="List of ROS 2 Distributions" loading="lazy" />
+        <p class="img-cap">List of ROS 2 Distributions</p>
+      </div>
+
+      <p>The distributions highlighted green are <strong>currently supported</strong> by the ROS 2 manufacturers. Some are supported for 5 years while others for shorter durations — for example, Iron Irwini has an EOL of November 2024, while <strong>Humble Hawksbill is supported for 5 years</strong>. Always choose long-term supported distributions.</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_2.png" alt="Future ROS 2 Distributions" loading="lazy" />
+        <p class="img-cap">Future ROS 2 Distributions</p>
+      </div>
+
+      <p>Under "Future Distributions," <strong>Jazzy Jalisco</strong> is visible — released in 2024 with EOL in 2029. It is the most recent long-term supported ROS 2 distribution. <strong>We will use Jazzy in this tutorial.</strong></p>
+
+      <div class="note plain">
+        If you're reading this several years after publication, install the most recently supported distribution of that time. The core concepts covered here remain identical across distributions.
+      </div>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="installing">
+      <h2>Installing ROS 2 Jazzy</h2>
+      <p>Search "ROS2 Jazzy Documentation" in your browser and click the first official result:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_3.png" alt="Official ROS 2 Jazzy Documentation search result" loading="lazy" />
+        <p class="img-cap">Search result for ROS 2 Jazzy Documentation</p>
+      </div>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_4.png" alt="ROS 2 Documentation homepage" loading="lazy" />
+        <p class="img-cap">ROS 2 Official Documentation Page</p>
+      </div>
+
+      <p>Click <strong>Installation</strong>. Use <strong>Ubuntu Linux 24.04</strong> — only this version is compatible with ROS 2 Jazzy and it provides the best support and documentation.</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_5.png" alt="Installation page" loading="lazy" />
+        <p class="img-cap">ROS 2 Installation Options</p>
+      </div>
+
+      <p>Under <strong>Ubuntu Linux → deb packages</strong>, scroll down to find the installation commands:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_6.png" alt="Ubuntu deb packages installation page" loading="lazy" />
+        <p class="img-cap">Ubuntu deb packages installation page</p>
+      </div>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_7.png" alt="Installation commands" loading="lazy" />
+        <p class="img-cap">Commands for ROS 2 Installation</p>
+      </div>
+
+      <p>Copy-paste these commands one by one into your terminal. Then install development tools (recommended):</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_8.png" alt="Install development tools" loading="lazy" />
+        <p class="img-cap">Install development tools</p>
+      </div>
+
+      <p>Choose <strong>Desktop Install</strong> (not Base Install) — this gives you simulation tools as well:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_9.png" alt="Desktop vs Base Install" loading="lazy" />
+        <p class="img-cap">Desktop Install vs Base Install</p>
+      </div>
+
+      <p>After all commands complete successfully, verify the installation:</p>
+
+      <pre><code>source /opt/ros/jazzy/setup.bash</code></pre>
+      <pre><code>ros2</code></pre>
+
+      <p>If a list of ROS 2 commands appears, installation was successful. If you see <code>ros2 command not found</code>, something went wrong.</p>
+
+      <p>Now install two additional tools — VS Code and gedit:</p>
+
+      <pre><code>sudo snap install code --classic</code></pre>
+      <pre><code>sudo apt install gedit</code></pre>
+
+      <p>Verify gedit by running <code>gedit</code> — a text editor window should open:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_10.png" alt="Gedit interface" loading="lazy" />
+        <p class="img-cap">Gedit text editor — successfully installed</p>
+      </div>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="terminal">
+      <h2>Understanding Basic Linux Terminal Commands</h2>
+
+      <div class="note plain">
+        If you already know <code>cd</code>, <code>ls</code>, and <code>mkdir</code>, you can skip to the next section.
+      </div>
+
+      <h3>Creating Folders — mkdir</h3>
+      <p>Create a folder named <code>my_first_folder</code>:</p>
+      <pre><code>mkdir my_first_folder</code></pre>
+
+      <p>Open the Files app to confirm — the folder should appear in your home directory:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_11.png" alt="File explorer showing created folder" loading="lazy" />
+        <p class="img-cap">my_first_folder created in home directory</p>
+      </div>
+
+      <div class="note">
+        When naming folders, avoid spaces. Use underscores to separate words: <code>my_first_folder</code>, not <code>my first folder</code>.
+      </div>
+
+      <h3>Changing Directory — cd</h3>
+      <p>To create a folder <strong>inside</strong> <code>my_first_folder</code>, change your working directory into it first:</p>
+      <pre><code>cd my_first_folder/</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_12.png" alt="CLI after cd command" loading="lazy" />
+        <p class="img-cap">Terminal after changing directory — my_first_folder is now active</p>
+      </div>
+
+      <p>Now create <code>folder_1</code> inside it:</p>
+      <pre><code>mkdir folder_1</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_13.png" alt="folder_1 inside my_first_folder" loading="lazy" />
+        <p class="img-cap">folder_1 created inside my_first_folder</p>
+      </div>
+
+      <p>To go one level back to the home directory:</p>
+      <pre><code>cd ..</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_14.png" alt="After cd .." loading="lazy" />
+        <p class="img-cap">Back to the root/home directory</p>
+      </div>
+
+      <p>Now create <code>my_second_folder</code> in the home directory:</p>
+      <pre><code>mkdir my_second_folder</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_16.png" alt="my_second_folder" loading="lazy" />
+        <p class="img-cap">my_second_folder created successfully</p>
+      </div>
+
+      <p>Visualise the folder structure like this:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_17.png" alt="Folder structure diagram" loading="lazy" />
+        <p class="img-cap">Folder hierarchy visualised</p>
+      </div>
+
+      <h3>Listing Files — ls</h3>
+      <p>The <code>ls</code> command lists all files and folders in the current working directory:</p>
+      <pre><code>ls</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_18.png" alt="ls command output in root" loading="lazy" />
+        <p class="img-cap">ls showing home directory contents</p>
+      </div>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_19.png" alt="ls inside my_first_folder" loading="lazy" />
+        <p class="img-cap">ls inside my_first_folder</p>
+      </div>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_20.png" alt="ls inside my_second_folder — empty" loading="lazy" />
+        <p class="img-cap">ls inside my_second_folder — empty since nothing was created inside it</p>
+      </div>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="workspace">
+      <h2>Creating a Workspace in ROS 2</h2>
+
+      <h3>Setting Up the ROS 2 Environment</h3>
+      <p>Before using ROS 2, its environment must be sourced. Open a new terminal and type:</p>
+      <pre><code>source /opt/ros/jazzy/setup.bash</code></pre>
+
+      <p>To avoid running this every session, add it to <code>.bashrc</code> so it runs automatically:</p>
+      <pre><code>gedit .bashrc</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_21.png" alt="Opening .bashrc in gedit" loading="lazy" />
+        <p class="img-cap">Opening the .bashrc file in gedit</p>
+      </div>
+
+      <p>Scroll to the bottom of the file and add the source command as shown:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_22.png" alt="Adding source command to .bashrc" loading="lazy" />
+        <p class="img-cap">Adding the ROS 2 source command at the end of .bashrc</p>
+      </div>
+
+      <p>Save and close the file. Now open a new terminal — ROS 2 will be ready without manually sourcing it each time.</p>
+
+      <h3>Creating the Workspace</h3>
+      <p>First install colcon (the ROS 2 build tool):</p>
+      <pre><code>sudo apt update</code></pre>
+      <pre><code>sudo apt install python3-colcon-common-extensions</code></pre>
+
+      <p>Create the workspace folder named <code>ws_1</code>, move inside it, and create the source folder:</p>
+      <pre><code>mkdir ws_1</code></pre>
+      <pre><code>cd ws_1</code></pre>
+      <pre><code>mkdir src</code></pre>
+
+      <p>Use <code>ls</code> to confirm the <code>src</code> folder exists:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_23.png" alt="src folder inside workspace" loading="lazy" />
+        <p class="img-cap">src folder successfully created inside ws_1</p>
+      </div>
+
+      <p>Now build the workspace:</p>
+      <pre><code>colcon build</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_24.png" alt="colcon build output" loading="lazy" />
+        <p class="img-cap">Successful colcon build output</p>
+      </div>
+
+      <p>Run <code>ls</code> again — three new folders will appear: <code>build</code>, <code>install</code>, and <code>log</code>:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_25.png" alt="Workspace after colcon build" loading="lazy" />
+        <p class="img-cap">build, install, and log folders created after colcon build</p>
+      </div>
+
+      <p>Add the workspace source to <code>.bashrc</code> as well so your custom nodes are always available:</p>
+      <pre><code>source ~/ws_1/install/setup.bash</code></pre>
+
+      <p>Go back to the home directory first with <code>cd ..</code>, then open .bashrc with <code>gedit .bashrc</code>, add the line above at the end, save and close.</p>
+    </section>
+
+    <div class="rule"></div>
+
+    <section id="package">
+      <h2>Creating a Package in ROS 2</h2>
+      <p>Packages must be created inside the <code>src</code> folder. Navigate there:</p>
+      <pre><code>cd ws_1/src/</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_26.png" alt="Empty src folder" loading="lazy" />
+        <p class="img-cap">Empty src folder — ready for the first package</p>
+      </div>
+
+      <p>ROS 2 has two types of packages: <strong>Python packages</strong> and <strong>C++ packages</strong>. We will create a Python package. Create one named <code>my_first_package</code>:</p>
+
+      <pre><code>ros2 pkg create my_first_package --build-type ament_python --dependencies rclpy</code></pre>
+
+      <div class="note plain">
+        For a C++ package instead, use:<br/>
+        <code>ros2 pkg create my_first_package --build-type ament_cmake --dependencies rclcpp</code>
+      </div>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_27.png" alt="Package creation output" loading="lazy" />
+        <p class="img-cap">Output after running the package creation command</p>
+      </div>
+
+      <p>Use <code>ls</code> to confirm the package folder exists:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_28.png" alt="Package visible in src" loading="lazy" />
+        <p class="img-cap">my_first_package visible inside src</p>
+      </div>
+
+      <p>Move back to the workspace root and build:</p>
+      <pre><code>cd ..</code></pre>
+      <pre><code>colcon build</code></pre>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_29.png" alt="colcon build after package creation" loading="lazy" />
+        <p class="img-cap">Build output — 1 package finished</p>
+      </div>
+
+      <p>You should see:</p>
+      <pre class="no-prompt"><code>Summary: 1 package finished [0.94s]</code></pre>
+
+      <p>Navigate inside the package to verify it was created correctly:</p>
+
+      <div class="img-wrap">
+        <img src="https://github.com/Satyarth-Shree/ros2-guides/raw/main/Images/part_1/Image_30.png" alt="Files inside the created package" loading="lazy" />
+        <p class="img-cap">Files automatically generated inside the package — creation confirmed</p>
+      </div>
+
+      <p>Auto-generated files and folders appearing inside your package confirm it was built successfully. You are now ready for Part 2 — creating your first node inside this package.</p>
+    </section>
+
+  </article>
+
+  <!-- NEXT PART -->
+  <a href="part2.html" class="next-card">
+    <div>
+      <p class="next-lbl">Up Next — Part 2 of 2</p>
+      <p class="next-title">Creating Your First Node</p>
+    </div>
+    <span class="next-arrow">→</span>
+  </a>
+
+  <!-- FOOTER -->
+  <footer class="art-footer">
+    <span class="art-footer-brand">ROS Simplified × KarthiKesh Robotics · Module 1</span>
+    <ul class="art-footer-links">
+      <li><a href="index.html">Module Home</a></li>
+      <li><a href="https://rossimplified.substack.com" target="_blank">Publication</a></li>
+      <li><a href="mailto:contact@satyarthshree.com">Contact</a></li>
+    </ul>
+  </footer>
+
+</div>
+</body>
+</html>
